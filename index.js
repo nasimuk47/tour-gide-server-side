@@ -34,6 +34,9 @@ async function run() {
         const TourpakageCollection = client
             .db("TourDb")
             .collection("Tourpakage");
+        const palageBookingCollection = client
+            .db("TourDb")
+            .collection("Bookings");
 
         // get popoler pakage
         app.get("/UserPakage", async (req, res) => {
@@ -86,6 +89,46 @@ async function run() {
                 res.status(500).send("Internal Server Error");
             }
         });
+
+        // bokings collection
+        app.post("/BookPackage", async (req, res) => {
+            try {
+                const {
+                    pakageName,
+                    name,
+                    email,
+                    touristPhoto,
+                    price,
+                    tourDate,
+                    guideName,
+                    packageId,
+                    status,
+                } = req.body;
+
+                const bookingData = {
+                    pakageName: pakageName,
+                    name: name,
+                    email: email,
+                    touristPhoto: touristPhoto,
+                    price: price,
+                    tourDate: new Date(tourDate),
+                    guideName: guideName,
+                    packageId: packageId,
+                    status: status,
+                };
+
+                const result = await palageBookingCollection.insertOne(
+                    bookingData
+                );
+
+                res.send(result);
+            } catch (error) {
+                console.error("Error in BookPackage route:", error);
+                res.status(500).send("Internal Server Error");
+            }
+        });
+
+        // ...
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
