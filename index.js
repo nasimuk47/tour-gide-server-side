@@ -31,6 +31,9 @@ async function run() {
             .db("TourDb")
             .collection("GuiderList");
         const WhisListCollection = client.db("TourDb").collection("WishList");
+        const TourpakageCollection = client
+            .db("TourDb")
+            .collection("Tourpakage");
 
         // get popoler pakage
         app.get("/UserPakage", async (req, res) => {
@@ -40,6 +43,12 @@ async function run() {
         // get guide list
         app.get("/GuiderList", async (req, res) => {
             const result = await GuiderListCollection.find().toArray();
+            res.send(result);
+        });
+
+        // tourpakage get
+        app.get("/TourPakage", async (req, res) => {
+            const result = await TourpakageCollection.find().toArray();
             res.send(result);
         });
 
