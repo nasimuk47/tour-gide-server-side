@@ -37,6 +37,7 @@ async function run() {
         const pakageBookingCollection = client
             .db("TourDb")
             .collection("Bookings");
+        const ReviwsCollection = client.db("TourDb").collection("reviews");
 
         // _______________________________________________________________
 
@@ -55,6 +56,22 @@ async function run() {
         app.get("/TourPakage", async (req, res) => {
             const result = await TourpakageCollection.find().toArray();
             res.send(result);
+        });
+        app.get("/reviews", async (req, res) => {
+            const result = await ReviwsCollection.find().toArray();
+            res.send(result);
+        });
+
+        // Move the specific route below the general one
+        app.get("/reviews/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await ReviwsCollection.findOne(query);
+            if (result) {
+                res.send(result);
+            } else {
+                res.status(404).send("Review not found");
+            }
         });
 
         // wishlist releted api
