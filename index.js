@@ -74,13 +74,30 @@ async function run() {
             }
         });
 
-        // wishlist releted api
-        // app.get("/WishList", async (req, res) => {
-        //     const email = req.query.email;
-        //     const query = { email: email };
-        //     const result = await WhisListCollection.find(query).toArray();
-        //     res.send(result);
-        // });
+        app.post("/reviews", async (req, res) => {
+            try {
+                const { name, details, spotpicture, rating, description } =
+                    req.body;
+                console.log("Received data:", req.body);
+
+                const reviewData = {
+                    name: name,
+                    details: details,
+                    spotpicture: spotpicture,
+                    rating: rating,
+                    description: description,
+                };
+
+                const result = await ReviwsCollection.insertOne(reviewData);
+
+                console.log("Review added successfully:", result);
+
+                res.send(result);
+            } catch (error) {
+                console.error("Error adding review:", error);
+                res.status(500).send("Internal Server Error");
+            }
+        });
 
         app.post("/AddToWishlist", async (req, res) => {
             try {
