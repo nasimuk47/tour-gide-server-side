@@ -34,9 +34,11 @@ async function run() {
         const TourpakageCollection = client
             .db("TourDb")
             .collection("Tourpakage");
-        const palageBookingCollection = client
+        const pakageBookingCollection = client
             .db("TourDb")
             .collection("Bookings");
+
+        // _______________________________________________________________
 
         // get popoler pakage
         app.get("/UserPakage", async (req, res) => {
@@ -90,6 +92,20 @@ async function run() {
             }
         });
 
+        app.get("/WishList", async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const result = await WhisListCollection.find(query).toArray();
+            res.send(result);
+        });
+
+        app.delete("/WishList/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await WhisListCollection.deleteOne(query);
+            res.send(result);
+        });
+
         // bokings collection
         app.post("/BookPackage", async (req, res) => {
             try {
@@ -117,7 +133,7 @@ async function run() {
                     status: status,
                 };
 
-                const result = await palageBookingCollection.insertOne(
+                const result = await pakageBookingCollection.insertOne(
                     bookingData
                 );
 
@@ -128,7 +144,15 @@ async function run() {
             }
         });
 
-        // ...
+        // Server-side code (not provided)
+        app.get("/Bookings", async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const result = await pakageBookingCollection.find(query).toArray();
+            res.send(result);
+        });
+
+        //    _____________________________________________________
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
