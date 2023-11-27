@@ -38,8 +38,66 @@ async function run() {
             .db("TourDb")
             .collection("Bookings");
         const ReviwsCollection = client.db("TourDb").collection("reviews");
+        const userCollection = client.db("TourDb").collection("users");
 
         // _______________________________________________________________
+
+        app.post("/users", async (req, res) => {
+            const user = req.body;
+            const query = { email: user.email };
+            const existingUser = await userCollection.findOne(query);
+            if (existingUser) {
+                return res.send({
+                    message: "user already exists",
+                    insertedId: null,
+                });
+            }
+            const result = await userCollection.insertOne(user);
+            res.send(result);
+        });
+
+        app.get("/users", async (req, res) => {
+            const result = await userCollection.find().toArray();
+            res.send(result);
+        });
+
+        app.get("/users/admin/:email", async (req, res) => {
+            const email = req.params.email;
+
+            const query = { email: email };
+            const user = await userCollection.findOne(query);
+            let admin = false;
+            if (user) {
+                admin = user?.role === "admin";
+            }
+            res.send({ admin });
+        });
+
+        app.patch(
+            "/users/admin/:id",
+
+            async (req, res) => {
+                const id = req.params.id;
+                const filter = { _id: new ObjectId(id) };
+                const updatedDoc = {
+                    $set: {
+                        role: "admin",
+                    },
+                };
+                const result = await userCollection.updateOne(
+                    filter,
+                    updatedDoc
+                );
+                res.send(result);
+            }
+        );
+
+        app.delete("/users/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await userCollection.deleteOne(query);
+            res.send(result);
+        });
 
         // get popoler pakage
         app.get("/UserPakage", async (req, res) => {
@@ -57,6 +115,57 @@ async function run() {
             const result = await TourpakageCollection.find().toArray();
             res.send(result);
         });
+
+        // post TourPakage
+
+        app.post("/TourPakage", async (req, res) => {
+            try {
+                const {
+                    spotPhoto,
+                    Type,
+                    tripTitle,
+                    price,
+                    detailsPhoto,
+                    detailsDescription,
+                } = req.body;
+
+                // Validate the required fields
+                if (
+                    !spotPhoto ||
+                    !Type ||
+                    !tripTitle ||
+                    !price ||
+                    !detailsPhoto ||
+                    !detailsDescription
+                ) {
+                    return res
+                        .status(400)
+                        .json({ error: "Missing required fields." });
+                }
+
+                const pakagedata = {
+                    spotPhoto: spotPhoto,
+                    Type: Type,
+                    tripTitle: tripTitle,
+                    price: price,
+                    detailsPhoto: detailsPhoto,
+                    detailsDescription: detailsDescription,
+                };
+
+                const result = await TourpakageCollection.insertOne(pakagedata);
+
+                console.log("New Package added successfully:", result);
+
+                res.status(201).json({
+                    message: "Package added successfully",
+                    insertedId: result.insertedId,
+                });
+            } catch (error) {
+                console.error("Error adding package:", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
+        });
+
         app.get("/reviews", async (req, res) => {
             const result = await ReviwsCollection.find().toArray();
             res.send(result);
