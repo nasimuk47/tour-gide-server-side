@@ -73,6 +73,21 @@ async function run() {
             res.send({ admin });
         });
 
+        // get guider email
+
+        app.get("/users/guide/:email", async (req, res) => {
+            const email = req.params.email;
+
+            const query = { email: email };
+            const user = await userCollection.findOne(query);
+            let guide = false; // Change variable name to 'guide'
+            if (user) {
+                guide = user?.role === "guide"; // Change 'admin' to 'guide'
+            }
+            res.send({ guide }); // Change 'admin' to 'guide' in the response
+        });
+
+        // make admin
         app.patch(
             "/users/admin/:id",
 
@@ -91,6 +106,19 @@ async function run() {
                 res.send(result);
             }
         );
+
+        // make guide
+        app.patch("/users/guide/:id", async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    role: "guide",
+                },
+            };
+            const result = await userCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        });
 
         app.delete("/users/:id", async (req, res) => {
             const id = req.params.id;
