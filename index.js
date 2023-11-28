@@ -83,11 +83,11 @@ async function run() {
 
             const query = { email: email };
             const user = await userCollection.findOne(query);
-            let guide = false; // Change variable name to 'guide'
+            let guide = false;
             if (user) {
-                guide = user?.role === "guide"; // Change 'admin' to 'guide'
+                guide = user?.role === "guide";
             }
-            res.send({ guide }); // Change 'admin' to 'guide' in the response
+            res.send({ guide });
         });
 
         // make admin
@@ -324,6 +324,64 @@ async function run() {
             const query = { email: email };
             const result = await pakageBookingCollection.find(query).toArray();
             res.send(result);
+        });
+
+        // cancle booking
+
+        app.delete("/AllBookings/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+
+            try {
+                // Perform the cancellation logic (e.g., delete the booking from the database)
+                const result = await pakageBookingCollection.deleteOne(query);
+                res.send(result);
+            } catch (error) {
+                console.error("Error cancelling booking:", error);
+                res.status(500).send("Internal Server Error");
+            }
+        });
+
+        app.get("/AllBookings", async (req, res) => {
+            const result = await pakageBookingCollection.find().toArray();
+            res.send(result);
+        });
+
+        app.patch("/updateBookingStatus/:id", async (req, res) => {
+            const id = req.params.id;
+            const { status } = req.body;
+
+            try {
+                const filter = { _id: new ObjectId(id) };
+                const updateDoc = {
+                    $set: {
+                        status: status,
+                    },
+                };
+
+                const result = await pakageBookingCollection.updateOne(
+                    filter,
+                    updateDoc
+                );
+
+                if (result.matchedCount === 1) {
+                    res.json({
+                        success: true,
+                        message: "Booking status updated successfully",
+                    });
+                } else {
+                    res.status(404).json({
+                        success: false,
+                        message: "Booking not found",
+                    });
+                }
+            } catch (error) {
+                console.error("Error updating booking status:", error);
+                res.status(500).json({
+                    success: false,
+                    message: "Internal Server Error",
+                });
+            }
         });
 
         // Payment releted --------------------
