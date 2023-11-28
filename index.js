@@ -3,6 +3,7 @@ const app = express();
 const cors = require("cors");
 require("dotenv").config();
 const { ObjectId } = require("mongodb");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const port = process.env.PORT || 5000;
 
 // middleware
@@ -39,6 +40,8 @@ async function run() {
             .collection("Bookings");
         const ReviwsCollection = client.db("TourDb").collection("reviews");
         const userCollection = client.db("TourDb").collection("users");
+
+        const paymentCollection = client.db("TourDb").collection("payments");
 
         // _______________________________________________________________
 
@@ -321,6 +324,26 @@ async function run() {
             const query = { email: email };
             const result = await pakageBookingCollection.find(query).toArray();
             res.send(result);
+        });
+
+        // Payment releted --------------------
+
+        app.post("/create-payment-intent", async (req, res) => {
+            try {
+                const { price } = req.body;
+                const amount = parseInt(price * 100);
+
+                const paymentIntent = await stripe.paymentIntents.create({
+                    amount: amount,
+                    currency: "usd",
+                    payment_method_types: ["card"],
+                });
+
+                res.json({ clientSecret: paymentIntent.client_secret });
+            } catch (error) {
+                console.error("Error creating payment intent:", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
         });
 
         //    _____________________________________________________
